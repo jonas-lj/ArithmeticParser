@@ -60,7 +60,7 @@ public class Parser<NumberT> {
   public List<Token> parse(String infix, List<String> variables, List<String> functions)
       throws ParseException {
 
-    LinkedList<Token> operaratorStack = new LinkedList<>();
+    LinkedList<Token> operatorStack = new LinkedList<>();
     LinkedList<Token> output = new LinkedList<>();
 
     List<String> tokens = new ArrayList<>();
@@ -76,11 +76,11 @@ public class Parser<NumberT> {
       if (operators.contains(token)) {
 
         // operator
-        while (!operaratorStack.isEmpty() && operators
-            .indexOf(operaratorStack.peek().getRepresentation()) >= operators.indexOf(token)) {
-          output.add(operaratorStack.pop());
+        while (!operatorStack.isEmpty() && operators
+            .indexOf(operatorStack.peek().getRepresentation()) >= operators.indexOf(token)) {
+          output.add(operatorStack.pop());
         }
-        operaratorStack.push(new Token(token, Token.Type.OPERATOR));
+        operatorStack.push(new Token(token, Token.Type.OPERATOR));
 
         implicitMultiplicationPossible = false;
         
@@ -88,19 +88,19 @@ public class Parser<NumberT> {
 
         // left parenthesis
         if (implicitMultiplicationPossible) {
-          operaratorStack.add(new Token("*", Token.Type.OPERATOR));
+          operatorStack.push(new Token("*", Token.Type.OPERATOR));
         }
         
-        operaratorStack.push(new Token("(", Token.Type.LEFT_PARANTHESIS));
+        operatorStack.push(new Token("(", Token.Type.LEFT_PARANTHESIS));
         implicitMultiplicationPossible = false;
 
       } else if (token.equals(")")) {
         
         // right parenthesis
-        while (!(operaratorStack.peek().getType() == Token.Type.LEFT_PARANTHESIS)) {
-          output.add(operaratorStack.pop());
+        while (!(operatorStack.peek().getType() == Token.Type.LEFT_PARANTHESIS)) {
+          output.add(operatorStack.pop());
         }
-        operaratorStack.pop();
+        operatorStack.pop();
         implicitMultiplicationPossible = true;
 
       } else if (variables.contains(token)) {
@@ -108,24 +108,24 @@ public class Parser<NumberT> {
         // variable
         output.add(new Token(token, Token.Type.VARIABLE));
         if (implicitMultiplicationPossible) {
-          output.add(new Token("*", Token.Type.OPERATOR));
+          operatorStack.push(new Token("*", Token.Type.OPERATOR));
         }
         implicitMultiplicationPossible = true;
 
       } else if (functions.contains(token)) {
 
         // function
-        operaratorStack.push(new Token(token, Token.Type.FUNCTION));
+        operatorStack.push(new Token(token, Token.Type.FUNCTION));
         implicitMultiplicationPossible = false;
 
       } else if (token.equals(",")) {
 
         // comma -- treat like right and left parenthesis
-        while (!(operaratorStack.peek().getType() == Token.Type.LEFT_PARANTHESIS)) {
-          output.add(operaratorStack.pop());
+        while (!(operatorStack.peek().getType() == Token.Type.LEFT_PARANTHESIS)) {
+          output.add(operatorStack.pop());
         }
-        operaratorStack.pop();
-        operaratorStack.push(new Token(token, Token.Type.LEFT_PARANTHESIS));
+        operatorStack.pop();
+        operatorStack.push(new Token(token, Token.Type.LEFT_PARANTHESIS));
         implicitMultiplicationPossible = false;
 
       } else if (isNumeric(token)) {
@@ -134,7 +134,7 @@ public class Parser<NumberT> {
         output.add(new Token(token, Token.Type.NUMBER));
 
         if (implicitMultiplicationPossible) {
-          output.add(new Token("*", Token.Type.OPERATOR));
+          operatorStack.push(new Token("*", Token.Type.OPERATOR));
         }
         implicitMultiplicationPossible = true;
 
@@ -143,8 +143,8 @@ public class Parser<NumberT> {
       }
     }
 
-    while (!operaratorStack.isEmpty()) {
-      output.add(operaratorStack.pop());
+    while (!operatorStack.isEmpty()) {
+      output.add(operatorStack.pop());
     }
 
     return output;
