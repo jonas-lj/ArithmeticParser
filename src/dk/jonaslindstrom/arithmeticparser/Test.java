@@ -16,7 +16,7 @@ public class Test {
 
   public static void main(String[] arguments) throws EvaluationException, ParseException {
 
-    String e = "3(y+2)"; //"(3+func(7-3*2, 2y)) * 2^3";
+    String e = "(3+func(7-3*2, 2y)) * 2^3";
 
     Map<String, Double> variables = Collections.singletonMap("y", 3.0);
     Map<String, MultiOperator<Double>> functions =
