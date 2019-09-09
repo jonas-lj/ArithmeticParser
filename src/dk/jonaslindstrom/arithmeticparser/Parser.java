@@ -71,19 +71,27 @@ public class Parser<NumberT> {
     infix = spacify(infix, tokens);
 
     boolean implicitMultiplicationPossible = false;
+    boolean negationPossible = true;
     
     for (String token : infix.split("\\s")) {
       if (operators.contains(token)) {
-
+        
         // operator
         while (!operatorStack.isEmpty() && operators
             .indexOf(operatorStack.peek().getRepresentation()) >= operators.indexOf(token)) {
           output.add(operatorStack.pop());
         }
-        operatorStack.push(new Token(token, Token.Type.OPERATOR));
-
-        implicitMultiplicationPossible = false;
         
+        // Replace negation with 0-
+        if (token.equals("-") && negationPossible) {
+          output.add(new Token("0", Token.Type.NUMBER));
+        }
+        
+        operatorStack.push(new Token(token, Token.Type.OPERATOR));
+        
+        implicitMultiplicationPossible = false;
+        negationPossible = false;
+
       } else if (token.equals("(")) {
 
         // left parenthesis
@@ -92,7 +100,9 @@ public class Parser<NumberT> {
         }
         
         operatorStack.push(new Token("(", Token.Type.LEFT_PARANTHESIS));
+        
         implicitMultiplicationPossible = false;
+        negationPossible = true;
 
       } else if (token.equals(")")) {
         
@@ -101,7 +111,9 @@ public class Parser<NumberT> {
           output.add(operatorStack.pop());
         }
         operatorStack.pop();
+        
         implicitMultiplicationPossible = true;
+        negationPossible = false;
 
       } else if (variables.contains(token)) {
 
@@ -110,13 +122,16 @@ public class Parser<NumberT> {
         if (implicitMultiplicationPossible) {
           operatorStack.push(new Token("*", Token.Type.OPERATOR));
         }
+        
         implicitMultiplicationPossible = true;
+        negationPossible = false;
 
       } else if (functions.contains(token)) {
 
         // function
         operatorStack.push(new Token(token, Token.Type.FUNCTION));
         implicitMultiplicationPossible = false;
+        negationPossible = false;
 
       } else if (token.equals(",")) {
 
@@ -127,6 +142,7 @@ public class Parser<NumberT> {
         operatorStack.pop();
         operatorStack.push(new Token(token, Token.Type.LEFT_PARANTHESIS));
         implicitMultiplicationPossible = false;
+        negationPossible = true;
 
       } else if (isNumeric(token)) {
 
@@ -137,6 +153,7 @@ public class Parser<NumberT> {
           operatorStack.push(new Token("*", Token.Type.OPERATOR));
         }
         implicitMultiplicationPossible = true;
+        negationPossible = false;
 
       } else {
         throw new ParseException("Unknown token: " + token, infix.indexOf(token));
